@@ -1,7 +1,12 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use bson::doc;
-use mongodb::{options::ClientOptions, Client};
+use bson::{doc, Document};
+use mongodb::{
+    error::{BulkWriteError, BulkWriteFailure},
+    options::ClientOptions,
+    Client,
+};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::{collections::HashMap, env};
 
 #[derive(Serialize, Deserialize)]
@@ -31,30 +36,71 @@ async fn process_data(data: web::Json<RequestData>) -> impl Responder {
 
     let env_mongo_uri = env::var("MONGO_URI").unwrap();
     let client_options = ClientOptions::parse(env_mongo_uri).await.unwrap();
-    let _client = Client::with_options(client_options).unwrap();
+    let client = Client::with_options(client_options).unwrap();
 
-    // let collection = client
-    //     .database("json-updates")
-    //     .collection(&data.db_collection);
+    let collection = client
+        .database("json-updates")
+        .collection::<Document>(&data.db_collection);
 
-    // // Convert data to Bson document
-    // let data_string = serde_json::to_string(&data.data).unwrap_or_default();
-    // let bson_data = match bson::Document::from_json(&data_string) {
-    //     Ok(bson) => bson,
-    //     Err(_) => doc! {},
-    // };
+    let now = chrono::Utc::now();
 
-    // // Insert data into the collection (here, you would normally use the token for authentication)
-    // let result = collection.insert_one(bson_data, None).await;
+    let docs: Vec<Document> = data
+        .data
+        .clone()
+        .into_iter()
+        .map(|obj| {
+            json!({
+                "_id": obj.get(&data.id_field).unwrap(),
+                "data": obj,
+                "createdAt": bson::DateTime::from_chrono(now),
+            })
+        })
+        .map(|value| bson::to_document(&value).unwrap())
+        .collect();
+    let result = collection.insert_many(docs, None).await;
 
-    // // Return the result
-    // match result {
-    //     Ok(insert_result) => HttpResponse::Ok().json(insert_result.inserted_id.to_string()),
-    //     Err(_) => HttpResponse::InternalServerError().finish(),
-    // }
-    HttpResponse::Ok().json(serde_json::json!({
-        "test": "ok"
-    }))
+    fn get_not_inserted_indexes(
+        error: mongodb::error::Error,
+    ) -> Result<Vec<usize>, mongodb::error::Error> {
+        match *error.clone().kind {
+            mongodb::error::ErrorKind::BulkWrite(BulkWriteFailure {
+                write_errors: Some(errors),
+                ..
+            }) => {
+                if errors
+                    .clone()
+                    .into_iter()
+                    .all(|BulkWriteError { code, .. }| code == 11000)
+                {
+                    Ok(errors
+                        .into_iter()
+                        .map(|BulkWriteError { index, .. }| index)
+                        .collect())
+                } else {
+                    Err(error)
+                }
+            }
+            _ => Err(error),
+        }
+    }
+
+    // let x = result
+    //     .map(|result| result.inserted_ids)
+    //     .or_else(|error| get_not_inserted_indexes(error));
+
+    match result {
+        Ok(insert_result) => HttpResponse::Ok().json(insert_result.inserted_ids),
+        Err(error) => match get_not_inserted_indexes(error) {
+            Ok(_not_inserted_indexes) => todo!(),
+            Err(error) => {
+                eprintln!("Mongo insertMany error, {}", error);
+                HttpResponse::InternalServerError().finish()
+            }
+        },
+    }
+    // HttpResponse::Ok().json(serde_json::json!({
+    //     "test": "ok"
+    // }))
 }
 
 #[actix_web::main]
