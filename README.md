@@ -1,69 +1,52 @@
-# Simple HTTP Server with Item Insertion Endpoint
+# JSON Updates: HTTP Server for Tracking New Items in Data Sources
 
-This repository contains a simple HTTP server written in Rust that provides an endpoint for inserting items into a MongoDB database. The server accepts a POST request with a JSON payload, which includes the items to be inserted and a security token for authentication. If the provided token matches the `ACCESS_TOKEN` environment variable, the server inserts the items into the database and responds with the newly inserted items.
+"json-updates" is a Rust-based HTTP server designed to help you monitor new items from various data sources. It can be used in conjunction with no-code/low-code tools (such as [n8n](https://n8n.io/)) to set up notifications about new items appearing on websites or other platforms. By passing items from the source to the server's endpoint, you receive back only the new items, which can then be used for notifications or other purposes.
 
-## Usage
+## Use Case
 
-To use this project, you will need to have Rust installed on your system. Follow the steps below to set up and run the project:
+This server can be extremely useful for setting up real-time notifications about new items on a monitored platform. For instance, you can connect this server with a no-code tool like n8n to fetch items from a website or any data source, pass the items to the server's endpoint, and the server will return only the newly appeared items. You can then send these new items to a messenger, email, or any other notification service to alert users about the new items.
 
-1. Clone the repository to your local machine.
-2. Install Rust and its package manager, Cargo, from the official Rust website: [https://www.rust-lang.org/](https://www.rust-lang.org/).
-3. Open a terminal and navigate to the project's root directory.
+## Getting Started
 
-### Setting up Environment Variables
+1. Clone this repository: `git clone https://github.com/pashutk/json-updates.git`
+2. Navigate into the project directory: `cd json-updates`
+3. Copy `.env.example` to `.env` and update the environment variables.
+4. Build the Docker image: `docker build -t json-updates .`
+5. Run the Docker container: `docker run -d -p 8000:8000 --env-file .env json-updates`
 
-Before running the project, ensure that the following environment variables are set:
+## API Endpoint
 
-- `ACCESS_TOKEN`: The security/access token used for authentication. The token value provided in the request should match this environment variable.
-- `MONGO_URI`: The MongoDB connection string.
-- `MONGO_DB_NAME`: The name of the MongoDB database.
-- `MONGO_COLLECTIONS_PREFIX`: The prefix that should be present in the `db_collection` key passed in the request body.
+`POST /data`
 
-To set these variables, create a `.env` file in the project's root directory based on the provided `.env.example` file. Modify the values in the `.env` file accordingly.
+The endpoint expects a JSON object containing:
 
-### Building and Running the Server
+- `db_collection`: MongoDB collection name where items will be stored.
+- `token`: Access token for API. It should match the `ACCESS_TOKEN` environment variable. If it does not match, the server will return an error.
+- `data`: List of items.
+- `id_field`: Name of the ID key that should be present in every item.
 
-To build and run the server, follow these steps:
+## Environment Variables
 
-1. Build the project by running the following command:
+Set these environment variables in your `.env` file:
 
-   ```shell
-   cargo build --release
-   ```
+- `ACCESS_TOKEN`: Security/access token for API access.
+- `MONGO_URI`: MongoDB connection string.
+- `MONGO_DB_NAME`: Name of the MongoDB database.
+- `MONGO_COLLECTIONS_PREFIX`: Prefix for the MongoDB collection name.
 
-2. Run the server using the following command:
+## Dependencies
 
-   ```shell
-   cargo run --release
-   ```
+- [actix-web](https://github.com/actix/actix-web): for the web server.
+- [serde](https://github.com/serde-rs/serde) and [serde_json](https://github.com/serde-rs/json): for serializing and deserializing JSON data.
+- [MongoDB](https://github.com/mongodb/mongo-rust-driver): for communicating with MongoDB.
+- [bson](https://github.com/mongodb/bson-rust): for working with BSON data.
+- [dotenvy](https://github.com/greyblake/dotenvy-rs): for loading environment variables from `.env` files.
+- [chrono](https://github.com/chronotope/chrono): for handling dates and times.
 
-   The server will now be running on `http://localhost:8000`.
+## Contribution
 
-### Sending a Request
-
-To send a POST request to the server, include the following JSON keys in the request body:
-
-- `db_collection`: The MongoDB collection name where the items will be stored. It should contain the prefix specified in the `MONGO_COLLECTIONS_PREFIX` environment variable.
-- `token`: The security/access token. It should match the `ACCESS_TOKEN` environment variable.
-- `data`: A list of items to be inserted.
-- `id_field`: The name of the ID key that should be present in every item.
-
-Ensure that the appropriate content type (`Content-Type: application/json`) is set in the request headers.
-
-If the provided token does not match the `ACCESS_TOKEN`, the server will respond with an error.
-
-## Used Crates
-
-This project utilizes the following Rust crates:
-
-- `actix-web`: A web server framework for building HTTP servers.
-- `serde` and `serde_json`: Libraries for serializing and deserializing data to and from JSON format.
-- `mongodb` and `bson`: Libraries for communicating with a MongoDB database.
-- `dotenvy`: A library for loading environment variables from a `.env` file.
-- `chrono`: A library for working with dates and times.
-
-Please refer to the official documentation of each crate for more information on their usage.
+Feel free to open an issue or submit a pull request if you have suggestions or find bugs.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE). You are free to use, modify, and distribute the code as needed.
+This project is licensed under the [MIT License](LICENSE).
