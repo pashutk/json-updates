@@ -152,7 +152,7 @@ async fn process_data(data: web::Json<RequestData>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    dotenvy::dotenv().unwrap();
+    dotenvy::dotenv().ok();
     env::var("ACCESS_TOKEN").expect("Set ACCESS_TOKEN env var!");
     env::var("MONGO_URI").expect("Set MONGO_URI env var!");
     env::var("MONGO_DB_NAME").expect("Set MONGO_DB_NAME env var!");
