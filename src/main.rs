@@ -161,7 +161,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new().service(web::resource("/data").route(web::post().to(process_data)))
     })
-    .bind("127.0.0.1:8000")?
+    .bind("0.0.0.0:8000")?
     .run()
     .await
 }
