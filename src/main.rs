@@ -159,7 +159,12 @@ async fn main() -> std::io::Result<()> {
     env::var("MONGO_COLLECTIONS_PREFIX").expect("Set MONGO_COLLECTIONS_PREFIX env var!");
 
     HttpServer::new(|| {
-        App::new().service(web::resource("/data").route(web::post().to(process_data)))
+        App::new()
+            .service(web::resource("/data").route(web::post().to(process_data)))
+            .service(web::redirect(
+                "/",
+                "https://github.com/pashutk/json-updates",
+            ))
     })
     .bind("0.0.0.0:8000")?
     .run()
