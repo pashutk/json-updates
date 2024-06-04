@@ -1,7 +1,9 @@
 FROM rust:1.72 as builder
+RUN rustup target add aarch64-unknown-linux-gnu
+RUN apt-get update && apt-get -y install binutils-arm-linux-gnueabihf
 WORKDIR /usr/src/myapp
 COPY . .
-RUN cargo install --path .
+RUN cargo install --target aarch64-unknown-linux-gnu --path .
 
 FROM debian:bullseye-slim
 RUN apt-get update && apt-get install -y && rm -rf /var/lib/apt/lists/*
