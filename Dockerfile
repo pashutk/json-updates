@@ -1,11 +1,9 @@
 FROM rust:1.72 as builder
-
 RUN rustup target add armv7-unknown-linux-musleabihf
 RUN apt-get update && apt-get -y install binutils-arm-linux-gnueabihf
-
 WORKDIR /usr/src/myapp
 COPY . .
-RUN cargo build --release --target armv7-unknown-linux-musleabihf --path .
+RUN cargo build --release --target armv7-unknown-linux-musleabihf
 
 FROM debian:bullseye-slim
 RUN apt-get update && apt-get install -y && rm -rf /var/lib/apt/lists/*
