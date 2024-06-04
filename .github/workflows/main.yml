@@ -30,7 +30,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: json-updates/json-updates
+          images: pashutk/json-updates
 
       - name: Build and push Docker image
         id: push
