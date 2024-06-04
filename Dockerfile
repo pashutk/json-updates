@@ -1,6 +1,6 @@
 FROM rust:1.72 as builder
 RUN rustup target add aarch64-unknown-linux-gnu
-RUN apt-get update && apt-get -y install binutils-arm-linux-gnueabihf
+RUN apt-get update && apt-get -y install binutils-arm-linux-gnueabihf gcc-aarch64-linux-gnu
 WORKDIR /usr/src/myapp
 COPY . .
 RUN cargo install --target aarch64-unknown-linux-gnu --path .
