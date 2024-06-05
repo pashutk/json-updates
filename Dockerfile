@@ -6,8 +6,8 @@ RUN rustup target add armv7-unknown-linux-gnueabihf aarch64-unknown-linux-gnu
 
 # Install necessary cross-compilation tools
 RUN apt-get update && apt-get install -y \
-    gcc-arm-linux-gnueabihf \
-    gcc-aarch64-linux-gnu \
+    g++-arm-linux-gnueabihf \
+    g++-aarch64-linux-gnu \
     libc6-dev-armhf-cross \
     libc6-dev-arm64-cross
 
