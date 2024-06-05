@@ -11,9 +11,10 @@
 # CMD ["json-updates"]
 
 FROM rust:1.72 as builder
+RUN rustup target add armv7-unknown-linux-gnueabihf aarch64-unknown-linux-gnu
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
-RUN cargo build --release --target=armv7-unknown-linux-gnueabihf || cargo build --release --target=aarch64-unknown-linux-gnu
+RUN cargo fetch --locked
 COPY src ./src
 RUN cargo build --release --target=armv7-unknown-linux-gnueabihf
 RUN cargo build --release --target=aarch64-unknown-linux-gnu
