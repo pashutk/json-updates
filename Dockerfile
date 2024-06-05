@@ -10,7 +10,7 @@
 # COPY --from=builder /usr/src/myapp/target/release/json-updates /usr/local/bin/json-updates
 # CMD ["json-updates"]
 
-FROM rust:1.72 as builder
+FROM rust:latest as builder
 RUN rustup target add armv7-unknown-linux-gnueabihf aarch64-unknown-linux-gnu
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
