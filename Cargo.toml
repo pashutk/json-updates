@@ -13,3 +13,7 @@ mongodb = { version = "2.1.1", features = ["bson-chrono-0_4"] }
 bson = { version = "2.6.1", features = ["chrono-0_4"] }
 dotenvy = "0.15.7"
 chrono = "0.4.24"
+
+[[bin]]
+name = "json-updates"
+path = "src/main.rs"
